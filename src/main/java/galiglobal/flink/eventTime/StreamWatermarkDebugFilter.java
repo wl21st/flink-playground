@@ -7,7 +7,7 @@ import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 
 public class StreamWatermarkDebugFilter<IN> extends AbstractUdfStreamOperator<IN, FilterFunction<IN>>
-    implements OneInputStreamOperator<IN, IN> {
+        implements OneInputStreamOperator<IN, IN> {
 
     private static final long serialVersionUID = 4243621562124742653L;
 

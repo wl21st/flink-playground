@@ -9,10 +9,10 @@ import java.util.List;
 
 public class SinkCollectingSensorData implements SinkFunction<SensorData> {
 
-	public static final List<SensorData> result =
-			Collections.synchronizedList(new ArrayList<>());
+    public static final List<SensorData> result =
+            Collections.synchronizedList(new ArrayList<>());
 
-	public void invoke(SensorData value, Context context) throws Exception {
-		result.add(value);
-	}
+    public void invoke(SensorData value, Context context) throws Exception {
+        result.add(value);
+    }
 }

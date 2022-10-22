@@ -22,7 +22,6 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.ConfigurationUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
@@ -44,6 +43,11 @@ public class StreamingJob {
         this.sink = sink;
     }
 
+    public static void main(String[] args) throws Exception {
+        StreamingJob job = new StreamingJob(new RandomLongSource(), new PrintSinkFunction<>());
+        job.execute();
+    }
+
     public void execute() throws Exception {
         Properties props = new Properties();
         props.put("metrics.reporter.jmx.factory.class", "org.apache.flink.metrics.jmx.JMXReporterFactory");
@@ -51,28 +55,27 @@ public class StreamingJob {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(conf);
 //        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        DataStream<Long> longStream =
-            env.addSource(source)
+        DataStream<Long> longStream = env
+                .addSource(source)
+                .name(RandomLongSource.class.getSimpleName())
                 .returns(TypeInformation.of(Long.class));
+
         longStream
-            .map(new IncrementMapFunction())
-            .addSink(sink);
+                .map(new IncrementMapFunction())
+                .name(IncrementMapFunction.class.getSimpleName())
+                .addSink(sink)
+                .name(PrintSinkFunction.class.getSimpleName());
 
         LOG.debug("Start Flink example job");
 
 //        DataStreamSink<Long> logTestStream = env.fromElements(0L, 1L, 2L)
-//            .map(new IncrementMapFunction())
-//            .addSink(sink);
+//                .map(new IncrementMapFunction())
+//                .addSink(sink);
 
         LOG.debug("Stop Flink example job");
 
 
         env.execute();
-    }
-
-    public static void main(String[] args) throws Exception {
-        StreamingJob job = new StreamingJob(new RandomLongSource(), new PrintSinkFunction<>());
-        job.execute();
     }
 
 }

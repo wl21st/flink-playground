@@ -14,11 +14,11 @@ public class StreamingJobTest {
 
     @ClassRule
     public static MiniClusterWithClientResource flinkCluster =
-        new MiniClusterWithClientResource(
-            new MiniClusterResourceConfiguration.Builder()
-                .setNumberSlotsPerTaskManager(2)
-                .setNumberTaskManagers(1)
-                .build());
+            new MiniClusterWithClientResource(
+                    new MiniClusterResourceConfiguration.Builder()
+                            .setNumberSlotsPerTaskManager(2)
+                            .setNumberTaskManagers(1)
+                            .build());
 
     @Test
     public void testBoundedOutOfOrdernessStrategyJob() throws Exception {
@@ -48,16 +48,16 @@ public class StreamingJobTest {
 
     private List<SensorData> generateSensorData() {
         return Arrays.asList(
-            new SensorData("sensor0", 0L, 0.1),
-            new SensorData("sensor1", 0L, 0.2),
-            new SensorData("sensor0", 100L, 0.3),
-            new SensorData("sensor1", 100L, 0.4),
-            new SensorData("sensor0", 200L, 0.5),
-            //new SensorData("sensor1", 200L, 0.6),
-            new SensorData("sensor0", 300L, 0.7),
-            new SensorData("sensor1", 300L, 0.8),
-            new SensorData("sensor0", 400L, 0.9),
-            new SensorData("sensor1", 400L, 1.0)
+                new SensorData("sensor0", 0L, 0.1),
+                new SensorData("sensor1", 0L, 0.2),
+                new SensorData("sensor0", 100L, 0.3),
+                new SensorData("sensor1", 100L, 0.4),
+                new SensorData("sensor0", 200L, 0.5),
+                //new SensorData("sensor1", 200L, 0.6),
+                new SensorData("sensor0", 300L, 0.7),
+                new SensorData("sensor1", 300L, 0.8),
+                new SensorData("sensor0", 400L, 0.9),
+                new SensorData("sensor1", 400L, 1.0)
         );
     }
 }

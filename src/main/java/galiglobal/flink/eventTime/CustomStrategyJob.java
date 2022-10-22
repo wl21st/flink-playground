@@ -18,7 +18,11 @@
 
 package galiglobal.flink.eventTime;
 
-import org.apache.flink.api.common.eventtime.*;
+import org.apache.flink.api.common.eventtime.BoundedOutOfOrdernessWatermarks;
+import org.apache.flink.api.common.eventtime.WatermarkGenerator;
+import org.apache.flink.api.common.eventtime.WatermarkGeneratorSupplier;
+import org.apache.flink.api.common.eventtime.WatermarkOutput;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.ConfigurationUtils;
@@ -45,6 +49,11 @@ public class CustomStrategyJob {
         this.sink = sink;
     }
 
+    public static void main(String[] args) throws Exception {
+        CustomStrategyJob job = new CustomStrategyJob(new RandomSensorSource(), new PrintSinkFunction<>());
+        job.execute();
+    }
+
     public void execute() throws Exception {
 
         Properties props = new Properties();
@@ -60,47 +69,42 @@ public class CustomStrategyJob {
         LOG.debug("Start Flink example job");
 
         DataStream<SensorData> sensorStream =
-            env.addSource(source)
-                .returns(TypeInformation.of(SensorData.class));
+                env.addSource(source)
+                        .returns(TypeInformation.of(SensorData.class));
 
 
         var sensorEventTimeStream =
-            sensorStream
-                .assignTimestampsAndWatermarks(
-                    new WatermarkStrategy<SensorData>() {
-                        @Override
-                        public WatermarkGenerator<SensorData> createWatermarkGenerator(
-                            WatermarkGeneratorSupplier.Context context) {
-                            return new BoundedOutOfOrdernessWatermarks<>(
-                                Duration.ofMillis(0)
-                            ) {
-                                @Override
-                                public void onEvent(
-                                    SensorData event,
-                                    long eventTimestamp,
-                                    WatermarkOutput output) {
-                                    super.onEvent(event, eventTimestamp, output);
-                                    super.onPeriodicEmit(output);
+                sensorStream
+                        .assignTimestampsAndWatermarks(
+                                new WatermarkStrategy<SensorData>() {
+                                    @Override
+                                    public WatermarkGenerator<SensorData> createWatermarkGenerator(
+                                            WatermarkGeneratorSupplier.Context context) {
+                                        return new BoundedOutOfOrdernessWatermarks<>(
+                                                Duration.ofMillis(0)
+                                        ) {
+                                            @Override
+                                            public void onEvent(
+                                                    SensorData event,
+                                                    long eventTimestamp,
+                                                    WatermarkOutput output) {
+                                                super.onEvent(event, eventTimestamp, output);
+                                                super.onPeriodicEmit(output);
+                                            }
+                                        };
+                                    }
                                 }
-                            };
-                        }
-                    }
-                        .withTimestampAssigner((event, timestamp) -> event.getTimestamp())
-                );
+                                        .withTimestampAssigner((event, timestamp) -> event.getTimestamp())
+                        );
 
         sensorEventTimeStream
-            .transform("debugFilter", sensorEventTimeStream.getType(), new StreamWatermarkDebugFilter<>())
-            .keyBy((event) -> event.getId())
-            .process(new TimeoutFunction())
-            .addSink(sink);
+                .transform("debugFilter", sensorEventTimeStream.getType(), new StreamWatermarkDebugFilter<>())
+                .keyBy((event) -> event.getId())
+                .process(new TimeoutFunction())
+                .addSink(sink);
 
         LOG.debug("Stop Flink example job");
         env.execute();
-    }
-
-    public static void main(String[] args) throws Exception {
-        CustomStrategyJob job = new CustomStrategyJob(new RandomSensorSource(), new PrintSinkFunction<>());
-        job.execute();
     }
 
 }

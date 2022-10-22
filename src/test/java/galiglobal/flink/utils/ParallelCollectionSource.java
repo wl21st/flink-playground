@@ -27,38 +27,38 @@ import java.util.List;
  */
 public class ParallelCollectionSource<T> extends RichParallelSourceFunction<T> {
 
-  private List<T> input;
-  private List<T> inputOfSubtask;
+    private List<T> input;
+    private List<T> inputOfSubtask;
 
-  public ParallelCollectionSource(List<T> input) {
-    this.input = input;
-  }
-
-  @Override
-  public void open(Configuration parameters) throws Exception {
-    super.open(parameters);
-
-    int numberOfParallelSubtasks = getRuntimeContext().getNumberOfParallelSubtasks();
-    int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
-
-    inputOfSubtask = new ArrayList<>();
-
-    for (int i = 0; i < input.size(); i++) {
-      if (i % numberOfParallelSubtasks == indexOfThisSubtask) {
-        inputOfSubtask.add(input.get(i));
-      }
+    public ParallelCollectionSource(List<T> input) {
+        this.input = input;
     }
-  }
 
-  @Override
-  public void run(SourceContext<T> ctx) throws Exception {
-    for (T l : inputOfSubtask) {
-      ctx.collect(l);
+    @Override
+    public void open(Configuration parameters) throws Exception {
+        super.open(parameters);
+
+        int numberOfParallelSubtasks = getRuntimeContext().getNumberOfParallelSubtasks();
+        int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
+
+        inputOfSubtask = new ArrayList<>();
+
+        for (int i = 0; i < input.size(); i++) {
+            if (i % numberOfParallelSubtasks == indexOfThisSubtask) {
+                inputOfSubtask.add(input.get(i));
+            }
+        }
     }
-  }
 
-  @Override
-  public void cancel() {
-    // ignore cancel, finite anyway
-  }
+    @Override
+    public void run(SourceContext<T> ctx) throws Exception {
+        for (T l : inputOfSubtask) {
+            ctx.collect(l);
+        }
+    }
+
+    @Override
+    public void cancel() {
+        // ignore cancel, finite anyway
+    }
 }

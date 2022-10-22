@@ -27,6 +27,11 @@ public class BoundedOutOfOrdernessStrategyJob {
         this.sink = sink;
     }
 
+    public static void main(String[] args) throws Exception {
+        BoundedOutOfOrdernessStrategyJob job = new BoundedOutOfOrdernessStrategyJob(new RandomSensorSource(), new PrintSinkFunction<>());
+        job.execute();
+    }
+
     public void execute() throws Exception {
 
         Properties props = new Properties();
@@ -43,31 +48,26 @@ public class BoundedOutOfOrdernessStrategyJob {
         LOG.debug("Start Flink example job");
 
         DataStream<SensorData> sensorStream =
-            env.addSource(source)
-                .returns(TypeInformation.of(SensorData.class));
+                env.addSource(source)
+                        .returns(TypeInformation.of(SensorData.class));
 
         var sensorEventTimeStream =
-            sensorStream.assignTimestampsAndWatermarks(
-                WatermarkStrategy.<SensorData>forBoundedOutOfOrderness(
-                    Duration.ofMillis(100)
-                ).withTimestampAssigner(
-                    (event, timestamp) -> event.getTimestamp()
-                )
-            );
+                sensorStream.assignTimestampsAndWatermarks(
+                        WatermarkStrategy.<SensorData>forBoundedOutOfOrderness(
+                                Duration.ofMillis(100)
+                        ).withTimestampAssigner(
+                                (event, timestamp) -> event.getTimestamp()
+                        )
+                );
 
         sensorEventTimeStream
-            .transform("debugFilter", sensorEventTimeStream.getType(), new StreamWatermarkDebugFilter<>())
-            .keyBy((event) -> event.getId())
-            .process(new TimeoutFunction())
-            .addSink(sink);
+                .transform("debugFilter", sensorEventTimeStream.getType(), new StreamWatermarkDebugFilter<>())
+                .keyBy((event) -> event.getId())
+                .process(new TimeoutFunction())
+                .addSink(sink);
 
         LOG.debug("Stop Flink example job");
         env.execute();
-    }
-
-    public static void main(String[] args) throws Exception {
-        BoundedOutOfOrdernessStrategyJob job = new BoundedOutOfOrdernessStrategyJob(new RandomSensorSource(), new PrintSinkFunction<>());
-        job.execute();
     }
 
 }

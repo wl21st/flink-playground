@@ -30,9 +30,9 @@ public class SensorData implements Serializable {
     @Override
     public String toString() {
         return "SensorData{" +
-            "id='" + id + '\'' +
-            ", timestamp=" + timestamp +
-            ", measure=" + measure +
-            '}';
+                "id='" + id + '\'' +
+                ", timestamp=" + timestamp +
+                ", measure=" + measure +
+                '}';
     }
 }
